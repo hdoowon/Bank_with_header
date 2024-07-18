@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
@@ -9,6 +10,7 @@ using namespace std;
 #include "Account.h"
 #include "NormalAccount.h"
 #include "HighCreditAccount.h"
+#include "String.h"
 
 void AccountHandler::ShowMenu(void) const
 {
@@ -38,7 +40,7 @@ void AccountHandler::MakeAccount(void)
 void AccountHandler::MakeNormalAccount(void)
 {
 	int id;
-	char name[NAME_LEN];
+	String name;
 	int balance;
 	int interRate;
 
@@ -48,13 +50,14 @@ void AccountHandler::MakeNormalAccount(void)
 	cout << "입금액: "; cin >> balance;
 	cout << "이자율: "; cin >> interRate;
 	cout << endl;
+
 	accArr[accNum++] = new NormalAccount(id, balance, name, interRate);
 }
 
 void AccountHandler::MAkeCreditAccount(void)
 {
 	int id;
-	char name[NAME_LEN];
+	String name;
 	int balance;
 	int interRate;
 	int creditLevel;
@@ -86,18 +89,30 @@ void AccountHandler::DepositMoney(void)
 	int id;
 	cout << "[입 금]" << endl;
 	cout << "계좌ID: "; cin >> id;
-	cout << "입금액: "; cin >> money;
 
-	for (int i = 0; i < accNum; i++)
+	while (true)
 	{
-		if (accArr[i]->GetAccID() == id)
+		cout << "입금액: "; cin >> money;
+		try
 		{
-			accArr[i]->Deposit(money);
-			cout << "입금완료" << endl << endl;
+			for (int i = 0; i < accNum; i++)
+			{
+				if (accArr[i]->GetAccID() == id)
+				{
+					accArr[i]->Deposit(money);
+					cout << "입금완료" << endl << endl;
+					return;
+				}
+			}
+			cout << "유효하지 않은 ID 입니다." << endl << endl;
 			return;
 		}
+		catch (MinusException& expt)
+		{
+			expt.ShowExceptionInfo();
+			cout << "입금액만 재입력하세요." << endl;
+		}
 	}
-	cout << "유효하지 않은 ID 입니다." << endl << endl;
 }
 
 void AccountHandler::WithdrawMoney(void)
@@ -106,22 +121,40 @@ void AccountHandler::WithdrawMoney(void)
 	int id;
 	cout << "[출 금]" << endl;
 	cout << "계좌ID: "; cin >> id;
-	cout << "출금액: "; cin >> money;
 
-	for (int i = 0; i < accNum; i++)
+	while (true)
 	{
-		if (accArr[i]->GetAccID() == id)
+		cout << "출금액: "; cin >> money;
+
+		try
 		{
-			if (accArr[i]->Withdraw(money) == 0)
+			for (int i = 0; i < accNum; i++)
 			{
-				cout << "잔액부족" << endl << endl;
-				return;
+				if (accArr[i]->GetAccID() == id)
+				{
+					if (accArr[i]->Withdraw(money) == 0)
+					{
+						cout << "잔액부족" << endl << endl;
+						return;
+					}
+					cout << "출금완료" << endl << endl;
+					return;
+				}
 			}
-			cout << "출금완료" << endl << endl;
+			cout << "유효하지 않은 ID 입니다." << endl << endl;
 			return;
 		}
+		catch (MinusException& expt)
+		{
+			expt.ShowExceptionInfo();
+			cout << "딥금액만 재입력하세요." << endl;
+		}
+		catch (InsuffException& expt)
+		{
+			expt.ShowExceptionInfo();
+			cout << "출금액만 재입력하세요." << endl;
+		}
 	}
-	cout << "유효하지 않은 ID 입니다." << endl << endl;
 }
 
 AccountHandler::AccountHandler() : accNum(0)

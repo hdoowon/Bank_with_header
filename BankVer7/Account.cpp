@@ -1,37 +1,37 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <cstring>
+#include <cstdlib>
 
 using namespace std;
 
 #include "BankingCommonDecl.h"
 #include "Account.h"
+#include "BankingException.h"
 
-Account::Account(int ID, int money, char* name)
+Account::Account(int ID, int money, String name)
 	:accID(ID), balance(money)
 {
-	cusName = new char[strlen(name) + 1];
-	strcpy(cusName, name);
-}
-
-Account::Account(const Account& ref)
-	:accID(ref.accID), balance(ref.balance)
-{
-	cusName = new char[strlen(ref.cusName) + 1];
-	strcpy(cusName, ref.cusName);
+	cusName = name;
 }
 
 int Account::GetAccID() const { return accID; }
 
 void Account::Deposit(int money)
 {
+	if (money < 0)
+		throw MinusException(money);
+
 	balance += money;
 }
 
 int Account::Withdraw(int money)
 {
+	if (money < 0)
+		throw MinusException(money);
+
 	if (balance < money)
-		return 0;
+		throw InsuffException(balance, money);
 
 	balance -= money;
 	return money;
@@ -42,9 +42,4 @@ void Account::ShowAccInfo() const
 	cout << "계좌ID: " << accID << endl;
 	cout << "이 름: " << cusName << endl;
 	cout << "잔 액: " << balance << endl;
-}
-
-Account::~Account()
-{
-	delete[]cusName;
 }
